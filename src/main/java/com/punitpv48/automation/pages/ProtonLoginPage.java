@@ -52,9 +52,10 @@ public class ProtonLoginPage extends BasePage {
         try {
             new WebDriverWait(driver, Duration.ofSeconds(Config.getInt("protonLoginTimeoutSeconds")))
                     .until(currentDriver -> {
-                        String currentUrl = currentDriver.getCurrentUrl();
-                        return currentUrl.startsWith("https://mail.proton.me/")
-                                && currentUrl.contains("/u/0/inbox");
+                        URI currentUri = URI.create(currentDriver.getCurrentUrl());
+                        return "https".equalsIgnoreCase(currentUri.getScheme())
+                            && "mail.proton.me".equalsIgnoreCase(currentUri.getHost())
+                            && currentUri.getPath().matches("/u/\\d+/inbox/?");
                     });
             return true;
         } catch (TimeoutException exception) {
