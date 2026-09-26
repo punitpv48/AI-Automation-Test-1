@@ -1,0 +1,11 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Proton Mail Smoke Suite" thread-count="1" data-provider-thread-count="1">
+  <listeners>
+    <listener class-name="com.punitpv48.automation.listeners.ExtentReportListener"/>
+  </listeners>
+  <test name="Proton Mail Smoke Tests">
+    <classes>
+      <class name="com.punitpv48.automation.tests.proton.ProtonSmokeTests"/>
+    </classes>
+  </test>
+</suite>

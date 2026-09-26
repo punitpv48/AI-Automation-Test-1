@@ -44,3 +44,26 @@ The examples use public demo services (SauceDemo and JSONPlaceholder). Replace t
 ## Reports
 
 The TestNG listener writes `target/extent-report.html` after each suite run. It includes pass/fail/skip status, exception details, browser screenshots on UI failures, and a pass percentage. Reports are overwritten on each run; archive the file before another run if you need to retain history.
+
+## Proton Mail UI checks
+
+The Proton suites are separate from the SauceDemo/JSONPlaceholder examples:
+
+```powershell
+mvn test -DsuiteXmlFile=src/test/resources/suites/proton-smoke.xml
+mvn test -DsuiteXmlFile=src/test/resources/suites/proton-regression.xml
+```
+
+The smoke test signs in and checks that the mailbox route opens. The regression suite includes that smoke check and a non-authenticated sign-in-form check. Proton tests run sequentially because they use an external account and repeated parallel sign-ins can trigger account security controls.
+
+### GitHub Actions setup
+
+The `Proton Mail UI Tests` workflow is started manually from the repository's **Actions** tab and offers `smoke` or `regression`. It uses the `proton-mail` GitHub Actions environment. Configure that environment under **Settings > Environments** and add:
+
+- Environment secrets `PROTON_USERNAME` and `PROTON_PASSWORD` for a dedicated test account you control.
+- Environment variable `PROTON_BASE_URL` with `https://mail.proton.me/`.
+- Optionally require an environment reviewer and restrict deployment branches to the protected default branch.
+
+The workflow maps these to `FRAMEWORK_PROTON_USERNAME`, `FRAMEWORK_PROTON_PASSWORD`, and `FRAMEWORK_PROTON_BASE_URL`; `Config` reads those environment values. Do not commit or paste credentials into source control, issues, chat, workflow inputs, or command-line arguments. Enter them directly in GitHub's secret-value form. Only trusted users should be able to edit workflows or dispatch the job. The workflow is manual-only and does not run on pull requests from forks.
+
+Use a dedicated Proton test account with no private mailbox content. This password-only check does not handle MFA, CAPTCHA, or account recovery prompts and does not attempt to bypass them. Do not disable protections on a personal account to make automation pass. If the account requires an additional factor, the current smoke test will time out at the sign-in flow and needs a separately reviewed authentication strategy. GitHub artifacts include test reports but intentionally exclude browser screenshots, which could expose mailbox content.

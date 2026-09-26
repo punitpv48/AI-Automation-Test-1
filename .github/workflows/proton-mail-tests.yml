@@ -1,0 +1,76 @@
+name: Proton Mail UI Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Test suite to run
+        required: true
+        type: choice
+        options:
+          - smoke
+          - regression
+        default: smoke
+
+permissions:
+  contents: read
+
+concurrency:
+  group: proton-mail-ui-tests
+  cancel-in-progress: false
+
+jobs:
+  proton-tests:
+    name: Proton Mail ${{ inputs.suite }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: proton-mail
+    env:
+      PROTON_SUITE: ${{ inputs.suite }}
+      FRAMEWORK_PROTON_BASE_URL: ${{ vars.PROTON_BASE_URL }}
+      FRAMEWORK_PROTON_USERNAME: ${{ secrets.PROTON_USERNAME }}
+      FRAMEWORK_PROTON_PASSWORD: ${{ secrets.PROTON_PASSWORD }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Verify Proton environment values
+        shell: bash
+        run: |
+          if [[ -z "$FRAMEWORK_PROTON_USERNAME" || -z "$FRAMEWORK_PROTON_PASSWORD" ]]; then
+            echo "::error::Add PROTON_USERNAME and PROTON_PASSWORD as secrets in the proton-mail environment."
+            exit 1
+          fi
+          if [[ -z "$FRAMEWORK_PROTON_BASE_URL" ]]; then
+            echo "::error::Add PROTON_BASE_URL as a variable in the proton-mail environment."
+            exit 1
+          fi
+
+      - name: Run selected TestNG suite
+        shell: bash
+        run: |
+          case "$PROTON_SUITE" in
+            smoke) suite="src/test/resources/suites/proton-smoke.xml" ;;
+            regression) suite="src/test/resources/suites/proton-regression.xml" ;;
+            *) echo "::error::Unsupported suite selection."; exit 1 ;;
+          esac
+          mvn --batch-mode --no-transfer-progress test -Dheadless=true "-DsuiteXmlFile=$suite"
+
+      - name: Upload test reports (no browser screenshots)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: proton-mail-${{ inputs.suite }}-reports
+          path: |
+            target/extent-report.html
+            target/surefire-reports/
+          if-no-files-found: warn
+          retention-days: 7
