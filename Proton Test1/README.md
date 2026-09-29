@@ -20,21 +20,13 @@ A Java 17+ Selenium/TestNG project copied from the Proton automation framework. 
 
 ## Run Proton email flow
 
-Set credentials in the same PowerShell session that runs Maven. Do not put their values in source files, shell command arguments, or chat:
+From PowerShell, run the helper script:
 
 ```powershell
-$env:FRAMEWORK_PROTON_USERNAME = Read-Host "Proton test username"
-$secret = Read-Host "Proton test password" -AsSecureString
-$pointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secret)
-try {
-	$env:FRAMEWORK_PROTON_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($pointer)
-} finally {
-	[Runtime.InteropServices.Marshal]::ZeroFreeBSTR($pointer)
-}
-mvn test -Dheadless=false
+.\run-proton-email.ps1
 ```
 
-The test sends an email to `Ankit.verma@gmail.com` with subject `Test email` and body `Hi. Test`. Use only an account you control and an intended recipient. Proton may require MFA/CAPTCHA; this framework does not bypass those protections. The current public sign-in page did not expose a “Keep me signed in” checkbox during initial inspection, so the flow waits for that control and reports a clear failure if it is not present.
+The script prompts for the username and a masked password, places them in process environment variables for Maven, and clears them afterward. It never writes the password to a file or command line. The test sends an email to `Ankit.verma@gmail.com` with subject `Test email` and body `Hi. Test`. Use only an account you control and an intended recipient. Proton may require MFA/CAPTCHA; this framework does not bypass those protections. The public sign-in page did not expose a “Keep me signed in” checkbox during initial inspection, so the flow waits for that control and reports a clear failure if it is not present.
 
 The XLSX ledger is written to `test-output/proton-email-test-results.xlsx` after each test attempt, including early failures. Secrets are never included in it.
 
