@@ -4,12 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       suite:
-        description: Test suite to run
+        description: Test suite or email workflow to run
         required: true
         type: choice
         options:
           - smoke
           - regression
+          - email
         default: smoke
 
 permissions:
@@ -58,11 +59,17 @@ jobs:
         shell: bash
         run: |
           case "$PROTON_SUITE" in
-            smoke) suite="src/test/resources/suites/proton-smoke.xml" ;;
-            regression) suite="src/test/resources/suites/proton-regression.xml" ;;
+            smoke)
+              mvn --batch-mode --no-transfer-progress test -Dheadless=true "-DsuiteXmlFile=src/test/resources/suites/proton-smoke.xml"
+              ;;
+            regression)
+              mvn --batch-mode --no-transfer-progress test -Dheadless=true "-DsuiteXmlFile=src/test/resources/suites/proton-regression.xml"
+              ;;
+            email)
+              xvfb-run --auto-servernum mvn --batch-mode --no-transfer-progress -f "Proton Test1/pom.xml" test -Dheadless=false
+              ;;
             *) echo "::error::Unsupported suite selection."; exit 1 ;;
           esac
-          mvn --batch-mode --no-transfer-progress test -Dheadless=true "-DsuiteXmlFile=$suite"
 
       - name: Upload test reports (no browser screenshots)
         if: always()
@@ -72,5 +79,8 @@ jobs:
           path: |
             target/extent-report.html
             target/surefire-reports/
+            Proton Test1/target/extent-report.html
+            Proton Test1/target/surefire-reports/
+            Proton Test1/test-output/proton-email-test-results.xlsx
           if-no-files-found: warn
           retention-days: 7

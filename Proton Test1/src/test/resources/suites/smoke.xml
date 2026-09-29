@@ -1,0 +1,12 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Smoke Suite" parallel="methods" thread-count="4" data-provider-thread-count="4">
+  <listeners>
+    <listener class-name="com.punitpv48.automation.listeners.ExtentReportListener"/>
+  </listeners>
+  <test name="Smoke Tests">
+    <classes>
+      <class name="com.punitpv48.automation.tests.smoke.SmokeTests"/>
+      <class name="com.punitpv48.automation.tests.smoke.ApiSmokeTests"/>
+    </classes>
+  </test>
+</suite>

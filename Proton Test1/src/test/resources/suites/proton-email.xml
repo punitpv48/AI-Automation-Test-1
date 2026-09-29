@@ -1,0 +1,11 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Proton Test1 Email Suite" thread-count="1" data-provider-thread-count="1">
+  <listeners>
+    <listener class-name="com.punitpv48.automation.listeners.ExtentReportListener"/>
+  </listeners>
+  <test name="Sign in and send test email">
+    <classes>
+      <class name="com.punitpv48.automation.tests.proton.ProtonEmailFlowTests"/>
+    </classes>
+  </test>
+</suite>
